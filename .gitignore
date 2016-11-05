@@ -3,3 +3,7 @@
 .tox/
 .direnv/
 .envrc
+
+build/
+dist/
+*.egg-info/

@@ -1,6 +1,5 @@
 import re
-
-from setuptools import setup
+import setuptools
 
 
 def get_version():
@@ -15,7 +14,7 @@ def get_long_description():
         return f.read()
 
 
-setup(
+setuptools.setup(
     name='dogpile-cachetool',
     version=get_version(),
     author='Timon Wong',
@@ -24,10 +23,7 @@ setup(
     long_description=get_long_description(),
     license='Apache License 2.0',
     url='https://github.com/timonwong/dogpile-cachetool',
-    packages=[
-        'dogpile_cachetool',
-        'dogpile_cachetool.backends',
-    ],
+    packages=setuptools.find_packages(),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
