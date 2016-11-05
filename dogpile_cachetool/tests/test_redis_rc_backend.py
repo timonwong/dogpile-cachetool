@@ -8,7 +8,7 @@ import dogpile_cachetool
 from . import _fixtures
 
 
-REDIS_PORT = int(os.getenv('TOX_DOGPILE_PORT', '6379'))
+REDIS_PORT = int(os.getenv('DOGPILE_REDIS_PORT', '6379'))
 
 
 def setup_module(module):
