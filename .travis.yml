@@ -1,7 +1,18 @@
+sudo: false
 language: python
 
-python:
-  - "2.7"
+python: 3.5
+
+env:
+  matrix:
+    - TOXENV=pep8
+    - TOXENV=py27-rc
+
+matrix:
+  fast_finish: true
+
+cache:
+  pip: true
 
 services:
   - redis
@@ -17,8 +28,7 @@ install:
   - pip install tox
 
 script:
-  - tox -e pep8
-  - tox -e py
+  - tox -vv
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

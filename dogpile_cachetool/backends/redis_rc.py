@@ -1,27 +1,12 @@
 from dogpile.cache import api
-import rc
-from rc.cache import cached_property
-import rc.redis_clients as rc_clients
-import rc.redis_cluster as rc_cluster
 from six import u
 from six.moves import cPickle as pickle
 
+from dogpile_cachetool.utils import cached_property
 
-class _ClusterClient(rc_clients.RedisClusterClient):
-    def mset(self, mapping):
-        commands = []
-        for name, value in mapping.items():
-            commands.append(('SET', name, value))
-        results = self._execute_multi_command_with_poller('SET',
-                                                          commands)
-        return all(results.values())
-
-
-class _Cluster(rc_cluster.RedisCluster):
-    def get_client(self, max_concurrency=64, poller_timeout=1.0):
-        return _ClusterClient(
-            rc_cluster.RedisClusterPool(self), max_concurrency,
-            poller_timeout)
+rc = None
+rc_clients = None
+rc_cluster = None
 
 
 class RedisRCBackend(api.CacheBackend):
@@ -53,6 +38,7 @@ class RedisRCBackend(api.CacheBackend):
     # noinspection PyMissingConstructor
     def __init__(self, arguments):
         arguments = arguments.copy()
+        self._imports()
 
         self.hosts = arguments['hosts']
         self.distributed_lock = arguments.get('distributed_lock', False)
@@ -69,9 +55,34 @@ class RedisRCBackend(api.CacheBackend):
         self.connection_pool_options = arguments.pop(
             'connection_pool_options', None)
 
+    # noinspection PyUnresolvedReferences
+    def _imports(self):
+        # defer imports until backend is used
+        global rc, rc_clients, rc_cluster
+        import rc  # noqa
+        import rc.redis_clients as rc_clients  # noqa
+        import rc.redis_cluster as rc_cluster  # noqa
+
+        class _ClusterClient(rc_clients.RedisClusterClient):
+            def mset(self, mapping):
+                commands = []
+                for name, value in mapping.items():
+                    commands.append(('SET', name, value))
+                results = self._execute_multi_command_with_poller('SET',
+                                                                  commands)
+                return all(results.values())
+
+        class _Cluster(rc_cluster.RedisCluster):
+            def get_client(self, max_concurrency=64, poller_timeout=1.0):
+                return _ClusterClient(
+                    rc_cluster.RedisClusterPool(self), max_concurrency,
+                    poller_timeout)
+
+        self._cluster_cls = _Cluster
+
     @cached_property
     def client(self):
-        cluster = _Cluster(
+        cluster = self._cluster_cls(
             self.hosts,
             router_cls=rc.RedisConsistentHashRouter,
             router_options=None,  # Not used (deliberately)
