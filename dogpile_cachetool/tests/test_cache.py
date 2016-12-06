@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
-import unittest
+import unittest2
 
 from dogpile.cache import proxy
 
@@ -31,7 +31,7 @@ class TestProxyValue(object):
         self.cached = False
 
 
-class UTF8KeyManglerTests(unittest.TestCase):
+class UTF8KeyManglerTests(unittest2.TestCase):
 
     def test_key_is_utf8_encoded(self):
         key = u'fäké1'
@@ -54,7 +54,7 @@ class UTF8KeyManglerTests(unittest.TestCase):
         self.assertEqual(len(encoded), cache._MAX_KEY_SIZE)
 
 
-class CacheRegionTest(unittest.TestCase):
+class CacheRegionTest(unittest2.TestCase):
     def setUp(self):
         super(CacheRegionTest, self).setUp()
         self.region = cache.create_region()
