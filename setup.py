@@ -37,9 +37,11 @@ setuptools.setup(
     ],
     install_requires=[
         'six',
-        'rc>=0.3.1',
         'dogpile.cache==0.6.1',
     ],
+    extras_require={
+        'rc': ['rc>=0.3.1'],
+    },
     tests_require=[
         'pytest',
     ]

@@ -42,6 +42,9 @@ class RedisRCBackend(api.CacheBackend):
                     3: {'port': 6679},
                 },
                 'redis_expiration_time': 60*60*2,   # 2 hours
+                'connection_pool_options': {
+                    'max_connections': 128,
+                },
                 'distributed_lock': False,
             }
         )
@@ -63,6 +66,8 @@ class RedisRCBackend(api.CacheBackend):
         self.redis_expiration_time = arguments.pop('redis_expiration_time', 0)
         self.max_concurrency = arguments.pop('max_concurrency', 64)
         self.poller_timeout = arguments.pop('poller_timeout', 1.0)
+        self.connection_pool_options = arguments.pop(
+            'connection_pool_options', None)
 
     @cached_property
     def client(self):
@@ -71,7 +76,7 @@ class RedisRCBackend(api.CacheBackend):
             router_cls=rc.RedisConsistentHashRouter,
             router_options=None,  # Not used (deliberately)
             pool_cls=None,  # Use the default one (deliberately)
-            pool_options=None,  # Not used (deliberately)
+            pool_options=self.connection_pool_options,
         )
         return cluster.get_client(max_concurrency=self.max_concurrency,
                                   poller_timeout=self.poller_timeout)
