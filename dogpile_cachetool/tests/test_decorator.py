@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import itertools
-import unittest
+import unittest2
 
 from dogpile_cachetool import core as cache
 
 
-class DecoratorTest(unittest.TestCase):
+class DecoratorTest(unittest2.TestCase):
     def setUp(self):
         super(DecoratorTest, self).setUp()
         self.region = cache.create_region()

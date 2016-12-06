@@ -3,7 +3,7 @@ import itertools
 import os
 import random
 import time
-import unittest
+import unittest2
 from binascii import hexlify
 from threading import Lock
 from threading import Thread
@@ -18,11 +18,8 @@ class _GenericBackendFixture(object):
     def setUpClass(cls):
         super(_GenericBackendFixture, cls).setUpClass()
         backend_cls = _backend_loader.load(cls.backend)
-        try:
-            arguments = cls.config_args.get('arguments', {})
-            backend = backend_cls(arguments)
-        except ImportError:
-            raise unittest.SkipTest("Backend %s not installed" % cls.backend)
+        arguments = cls.config_args.get('arguments', {})
+        backend = backend_cls(arguments)
         cls._check_backend_available(backend)
 
     def setUp(self):
@@ -83,7 +80,7 @@ class _GenericBackendFixture(object):
         return self._backend_inst
 
 
-class _GenericBackendTest(_GenericBackendFixture, unittest.TestCase):
+class _GenericBackendTest(_GenericBackendFixture, unittest2.TestCase):
 
     def test_backend_get_nothing(self):
         backend = self._backend()
@@ -190,8 +187,8 @@ class _GenericBackendTest(_GenericBackendFixture, unittest.TestCase):
         self.assertEqual(
             reg.get_or_create(self._random_some_key, creator), "some value")
 
-    @unittest.skipIf(os.environ.get('CI') == 'true',
-                     "Not needed in CI environment")
+    @unittest2.skipIf(os.environ.get('CI') == 'true',
+                      "Not needed in CI environment")
     def test_threaded_dogpile(self):
         # run a basic dogpile concurrency test.
         # note the concurrency of dogpile itself
@@ -224,8 +221,8 @@ class _GenericBackendTest(_GenericBackendFixture, unittest.TestCase):
         else:
             assert False in canary
 
-    @unittest.skipIf(os.environ.get('CI') == 'true',
-                     "Not needed in CI environment")
+    @unittest2.skipIf(os.environ.get('CI') == 'true',
+                      "Not needed in CI environment")
     def test_threaded_get_multi(self):
         reg = self._region(config_args={"expiration_time": .25})
         locks = dict((str(i), Lock()) for i in range(11))

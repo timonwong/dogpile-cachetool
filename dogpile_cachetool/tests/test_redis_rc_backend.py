@@ -1,17 +1,20 @@
 import os
-import unittest
 
+import unittest2
 from dogpile.cache.region import _backend_loader
 
 import dogpile_cachetool
-
 from . import _fixtures
-
 
 REDIS_PORT = int(os.getenv('DOGPILE_REDIS_PORT', '6379'))
 
 
 def setup_module(module):
+    try:
+        import rc  # noqa
+    except ImportError:
+        raise unittest2.SkipTest(
+            "Skip because redis-py-cluster is not installed.")
     dogpile_cachetool.register_backend()
 
 
@@ -19,16 +22,11 @@ class _TestRedisRCConn(object):
 
     @classmethod
     def _check_backend_available(cls, backend):
-        try:
-            client = backend.client
-            client.set("x", "y")
-            # on py3k it appears to return b"y"
-            assert client.get("x").decode("ascii") == "y"
-            client.delete("x")
-        except Exception:
-            raise unittest.SkipTest(
-                "redis is not running or "
-                "otherwise not functioning correctly")
+        client = backend.client
+        client.set("x", "y")
+        # on py3k it appears to return b"y"
+        assert client.get("x").decode("ascii") == "y"
+        client.delete("x")
 
 
 class RedisRCTest(_TestRedisRCConn, _fixtures._GenericBackendTest):
@@ -45,7 +43,7 @@ class RedisRCTest(_TestRedisRCConn, _fixtures._GenericBackendTest):
     }
 
 
-class RedisRCConnectionTest(unittest.TestCase):
+class RedisRCConnectionTest(unittest2.TestCase):
     backend = 'dogpile_cachetool.redis_rc'
 
     @classmethod

@@ -41,6 +41,10 @@ def register_backend():
         'dogpile_cachetool.redis_rc',
         'dogpile_cachetool.backends.redis_rc',
         'RedisRCBackend')
+    dogpile.cache.register_backend(
+        'dogpile_cachetool.rediscluster',
+        'dogpile_cachetool.backends.redis_cluster',
+        'RedisClusterBackend')
 
 
 def create_key_mangler(region_name=None):
@@ -99,7 +103,7 @@ def _mangle_key(key):
         pass
 
     if len(key) > _MAX_KEY_SIZE:
-        hashed = sha1(key).hexdigest()
+        hashed = sha1(key).hexdigest().encode('utf-8')
         l = _MAX_KEY_SIZE - len(hashed) - 1
         key = b'%s-%s' % (key[:l], hashed)
 

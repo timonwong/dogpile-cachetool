@@ -41,8 +41,10 @@ setuptools.setup(
     ],
     extras_require={
         'rc': ['rc>=0.3.1'],
+        'rediscluster': ['redis-py-cluster'],
     },
     tests_require=[
+        'unittest2',
         'pytest',
     ]
 )
