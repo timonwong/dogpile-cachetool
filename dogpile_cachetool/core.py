@@ -43,7 +43,7 @@ def register_backend():
         'RedisRCBackend')
     dogpile.cache.register_backend(
         'dogpile_cachetool.rediscluster',
-        'dogpile_cachetool.backends.redis_cluster',
+        'dogpile_cachetool.backends.rediscluster',
         'RedisClusterBackend')
 
 
