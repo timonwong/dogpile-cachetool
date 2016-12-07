@@ -1,5 +1,3 @@
-import os
-
 import unittest2
 
 import dogpile_cachetool
@@ -26,9 +24,6 @@ class _TestRedisClusterConn(object):
         client.delete("x")
 
 
-@unittest2.skipIf(
-    os.environ.get("CACHETOOL_BACKEND") not in (None, "rediscluster"),
-    "backend test skip")
 class RedisClusterTest(_TestRedisClusterConn, _fixtures._GenericBackendTest):
     backend = 'dogpile_cachetool.rediscluster'
     config_args = {
