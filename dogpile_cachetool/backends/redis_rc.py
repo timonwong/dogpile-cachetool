@@ -4,10 +4,6 @@ from six.moves import cPickle as pickle
 
 from dogpile_cachetool.utils import cached_property
 
-rc = None
-rc_clients = None
-rc_cluster = None
-
 
 class RedisRCBackend(api.CacheBackend):
     """"A `Redis <http://redis.io/>`_ backend, using the
@@ -38,7 +34,6 @@ class RedisRCBackend(api.CacheBackend):
     # noinspection PyMissingConstructor
     def __init__(self, arguments):
         arguments = arguments.copy()
-        self._imports()
 
         self.hosts = arguments['hosts']
         self.distributed_lock = arguments.get('distributed_lock', False)
@@ -55,13 +50,11 @@ class RedisRCBackend(api.CacheBackend):
         self.connection_pool_options = arguments.pop(
             'connection_pool_options', None)
 
-    # noinspection PyUnresolvedReferences
-    def _imports(self):
-        # defer imports until backend is used
-        global rc, rc_clients, rc_cluster
-        import rc  # noqa
-        import rc.redis_clients as rc_clients  # noqa
-        import rc.redis_cluster as rc_cluster  # noqa
+    @cached_property
+    def client(self):
+        import rc
+        import rc.redis_clients as rc_clients
+        import rc.redis_cluster as rc_cluster
 
         class _ClusterClient(rc_clients.RedisClusterClient):
             def mset(self, mapping):
@@ -78,11 +71,7 @@ class RedisRCBackend(api.CacheBackend):
                     rc_cluster.RedisClusterPool(self), max_concurrency,
                     poller_timeout)
 
-        self._cluster_cls = _Cluster
-
-    @cached_property
-    def client(self):
-        cluster = self._cluster_cls(
+        cluster = _Cluster(
             self.hosts,
             router_cls=rc.RedisConsistentHashRouter,
             router_options=None,  # Not used (deliberately)

@@ -1,6 +1,8 @@
+from __future__ import absolute_import
+
 from dogpile.cache.backends.redis import RedisBackend
 
-rediscluster = None
+from dogpile_cachetool.utils import cached_property
 
 
 class RedisClusterBackend(RedisBackend):
@@ -65,6 +67,9 @@ class RedisClusterBackend(RedisBackend):
      socket_timeout, and will be passed to ``redis.StrictRedis`` as the
      source of connectivity.
 
+    :param max_connections: Maximum number of connections that should be kept
+    open at one time
+
     :param skip_full_coverage_check: Skips the check of
         cluster-require-full-coverage config, useful for clusters without
         the CONFIG command (like aws)
@@ -74,7 +79,6 @@ class RedisClusterBackend(RedisBackend):
     # noinspection PyMissingConstructor
     def __init__(self, arguments):
         arguments = arguments.copy()
-        self._imports()
         self.url = arguments.pop('url', None)
         self.host = arguments.pop('host', 'localhost')
         self.password = arguments.pop('password', None)
@@ -87,18 +91,16 @@ class RedisClusterBackend(RedisBackend):
         self.lock_sleep = arguments.get('lock_sleep', 0.1)
 
         self.redis_expiration_time = arguments.pop('redis_expiration_time', 0)
+        self.max_connections = arguments.pop('max_connections', 32)
         self.skip_full_coverage_check = arguments.pop(
             'skip_full_coverage_check', False)
         self.connection_pool = arguments.get('connection_pool', None)
-        self.client = self._create_client()
+        self.client = self._client
 
-    def _imports(self):
-        # defer imports until backend is used
-        global rediscluster
-        # noinspection PyUnresolvedReferences
-        import rediscluster  # noqa
+    @cached_property
+    def _client(self):
+        import rediscluster
 
-    def _create_client(self):
         if self.connection_pool is not None:
             # the connection pool already has all other connection
             # options present within, so here we disregard socket_timeout
@@ -106,18 +108,18 @@ class RedisClusterBackend(RedisBackend):
             return rediscluster.StrictRedisCluster(
                 connection_pool=self.connection_pool)
 
-        args = {}
+        args = {
+            'skip_full_coverage_check': self.skip_full_coverage_check,
+            'max_connections': self.max_connections,
+        }
         if self.socket_timeout:
             args['socket_timeout'] = self.socket_timeout
         if self.url is not None:
-            args.update(url=self.url,
-                        skip_full_coverage_check=self.skip_full_coverage_check)
-            return rediscluster.StrictRedisCluster.from_url(**args)
+            args.update(url=self.url)
         else:
             args.update(
                 host=self.host,
                 password=self.password,
                 port=self.port,
-                skip_full_coverage_check=self.skip_full_coverage_check,
             )
-            return rediscluster.StrictRedisCluster(**args)
+        return rediscluster.StrictRedisCluster(**args)
