@@ -15,7 +15,7 @@ class RedisClusterBackend(RedisBackend):
         from dogpile.cache import make_region
 
         region = make_region().configure(
-            'dogpile.cache.redis',
+            'dogpile_cachetool.rediscluster',
             arguments = {
                 'host': 'localhost',
                 'port': 6379,
