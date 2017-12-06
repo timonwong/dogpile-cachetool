@@ -69,7 +69,9 @@ def create_region(*args, **kwargs):
     kwargs.setdefault('function_key_generator', function_key_generator)
     kwargs.setdefault('function_multi_key_generator',
                       function_multi_key_generator)
-    return SharedExpirationCacheRegion(*args, **kwargs)
+    cache_region_cls = kwargs.pop('cache_region_cls', None)
+    cache_region_cls = cache_region_cls or SharedExpirationCacheRegion
+    return cache_region_cls(*args, **kwargs)
 
 
 def configure_cache_region(region, conf):
@@ -104,8 +106,8 @@ def _mangle_key(key):
 
     if len(key) > _MAX_KEY_SIZE:
         hashed = sha1(key).hexdigest().encode('utf-8')
-        l = _MAX_KEY_SIZE - len(hashed) - 1
-        key = b'%s-%s' % (key[:l], hashed)
+        klen = _MAX_KEY_SIZE - len(hashed) - 1
+        key = b'%s-%s' % (key[:klen], hashed)
 
     return key
 
