@@ -105,7 +105,7 @@ class RedisClusterBackend(RedisBackend):
             # the connection pool already has all other connection
             # options present within, so here we disregard socket_timeout
             # and others.
-            return rediscluster.StrictRedisCluster(
+            return rediscluster.RedisCluster(
                 connection_pool=self.connection_pool)
 
         args = {
@@ -122,4 +122,4 @@ class RedisClusterBackend(RedisBackend):
                 password=self.password,
                 port=self.port,
             )
-        return rediscluster.StrictRedisCluster(**args)
+        return rediscluster.RedisCluster(**args)
